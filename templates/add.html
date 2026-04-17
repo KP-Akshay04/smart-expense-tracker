@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Expense</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: #020617;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        /* Card */
+        .card {
+            background: #1e293b;
+            border: none;
+            border-radius: 15px;
+            color: white;
+            transition: 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+
+        /* Inputs */
+        .form-control {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+        }
+
+        .form-control:focus {
+            background: #0f172a;
+            color: white;
+            border-color: #6366f1;
+            box-shadow: none;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: #6366f1;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: #334155;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar px-4 py-3">
+    <span class="navbar-brand text-white fw-bold">💰 Expense Tracker</span>
+    <a href="/dashboard" class="btn btn-outline-light btn-sm">Back</a>
+</nav>
+
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card p-4">
+
+                <h4 class="mb-4 text-center">➕ Add New Expense</h4>
+
+                <form method="POST" action="/add">
+
+                    <div class="mb-3">
+                        <label>Title</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Lunch" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Amount</label>
+                        <input type="number" name="amount" class="form-control" placeholder="e.g. 200" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Category</label>
+                        <input type="text" name="category" class="form-control" placeholder="Food / Travel / Bills" required>
+                    </div>
+
+                    <button class="btn btn-primary w-100 mt-3">Add Expense</button>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
