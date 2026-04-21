@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # Initialize DB
 def init_db():
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("/home/ubuntu/database.db")
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS expenses (
@@ -44,7 +44,7 @@ def home():
 # Dashboard
 @app.route('/dashboard')
 def index():
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("/home/ubuntu/database.db")
     c = conn.cursor()
 
     # 🔥 FETCH ALL DATA (MISSING BEFORE)
@@ -102,7 +102,7 @@ def add():
 
         today = date.today().isoformat()   # ✅ NEW
 
-        conn = sqlite3.connect("database.db")
+        conn = sqlite3.connect("/home/ubuntu/database.db")
         c = conn.cursor()
         c.execute(
             "INSERT INTO expenses (title, amount, category, date) VALUES (?, ?, ?, ?)",
@@ -118,7 +118,7 @@ def add():
 # Delete expense
 @app.route('/delete/<int:id>')
 def delete(id):
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("/home/ubuntu/database.db")
     c = conn.cursor()
     c.execute("DELETE FROM expenses WHERE id=?", (id,))
     conn.commit()
@@ -129,7 +129,7 @@ def delete(id):
 # Edit expense
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("/home/ubuntu/database.db")
     c = conn.cursor()
 
     if request.method == 'POST':
