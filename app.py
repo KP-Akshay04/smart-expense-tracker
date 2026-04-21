@@ -117,5 +117,34 @@ def delete(id):
 
     return redirect('/dashboard')
 
+# Edit expense
+@app.route('/edit/<int:id>', methods=['GET', 'POST'])
+def edit(id):
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        title = request.form['title']
+        amount = request.form['amount']
+        category = request.form['category']
+
+        c.execute("""
+            UPDATE expenses 
+            SET title=?, amount=?, category=? 
+            WHERE id=?
+        """, (title, amount, category, id))
+
+        conn.commit()
+        conn.close()
+
+        return redirect('/dashboard')
+
+    # GET request → fetch data
+    c.execute("SELECT * FROM expenses WHERE id=?", (id,))
+    expense = c.fetchone()
+    conn.close()
+
+    return render_template("edit.html", expense=expense)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
