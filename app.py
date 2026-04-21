@@ -46,17 +46,24 @@ def home():
 def index():
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
-    
-    # your queries...
+
+    # 🔥 FETCH ALL DATA (MISSING BEFORE)
+    c.execute("SELECT * FROM expenses")
+    data = c.fetchall()
+
+    # Total expense
     c.execute("SELECT SUM(amount) FROM expenses")
     total = c.fetchone()[0] or 0
 
+    # Total transactions
     c.execute("SELECT COUNT(*) FROM expenses")
     count = c.fetchone()[0]
 
+    # Highest expense
     c.execute("SELECT MAX(amount) FROM expenses")
     max_expense = c.fetchone()[0] or 0
 
+    # Most used category
     c.execute("""
         SELECT category, COUNT(*) 
         FROM expenses 
@@ -67,6 +74,7 @@ def index():
     top = c.fetchone()
     top_category = top[0] if top else "N/A"
 
+    # Chart data
     c.execute("SELECT category, SUM(amount) FROM expenses GROUP BY category")
     chart_data = c.fetchall()
 
@@ -75,7 +83,6 @@ def index():
     labels = [row[0] for row in chart_data]
     values = [row[1] for row in chart_data]
 
-    # ✅ IMPORTANT: THIS MUST BE INDENTED
     return render_template("index.html",
                            expenses=data,
                            total=total,

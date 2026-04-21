@@ -11,13 +11,11 @@
             font-family: 'Segoe UI', sans-serif;
         }
 
-        /* Navbar */
         .navbar {
             background: #020617;
             border-bottom: 1px solid #1e293b;
         }
 
-        /* Cards */
         .card {
             background: #1e293b;
             border: none;
@@ -31,7 +29,6 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.4);
         }
 
-        /* Table */
         .table {
             color: white;
         }
@@ -44,7 +41,6 @@
             background-color: #1e293b;
         }
 
-        /* Buttons */
         .btn-primary {
             background: #6366f1;
             border: none;
@@ -55,14 +51,12 @@
             border: none;
         }
 
-        /* Badge */
         .badge {
             font-size: 0.8rem;
             padding: 6px 10px;
             border-radius: 8px;
         }
 
-        /* Chart */
         .chart-box {
             max-width: 280px;
             margin: auto;
@@ -72,7 +66,6 @@
 
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar px-4 py-3">
     <span class="navbar-brand text-white fw-bold">💰 Expense Dashboard</span>
     <a href="/login" class="btn btn-outline-light btn-sm">Logout</a>
@@ -80,49 +73,47 @@
 
 <div class="container mt-4">
 
-    <!-- HEADER -->
     <h4 class="mb-4">👋 Welcome Back</h4>
 
     <!-- TOP CARDS -->
     <div class="row mb-4">
 
-    <div class="col-md-3">
-        <div class="card shadow p-3 text-center">
-            <h6>Total Expenses</h6>
-            <h4 class="text-success">₹{{ total }}</h4>
+        <div class="col-md-3">
+            <div class="card shadow p-3 text-center">
+                <h6>Total Expenses</h6>
+                <h4 class="text-success">₹{{ total }}</h4>
+            </div>
         </div>
+
+        <div class="col-md-3">
+            <div class="card shadow p-3 text-center">
+                <h6>Total Transactions</h6>
+                <h4>{{ count }}</h4>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow p-3 text-center">
+                <h6>Highest Expense</h6>
+                <h4 class="text-danger">₹{{ max_expense }}</h4>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow p-3 text-center">
+                <h6>Top Category</h6>
+                <h4>{{ top_category }}</h4>
+            </div>
+        </div>
+
     </div>
 
-    <div class="col-md-3">
-        <div class="card shadow p-3 text-center">
-            <h6>Total Transactions</h6>
-            <h4>{{ count }}</h4>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card shadow p-3 text-center">
-            <h6>Highest Expense</h6>
-            <h4 class="text-danger">₹{{ max_expense }}</h4>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card shadow p-3 text-center">
-            <h6>Top Category</h6>
-            <h4>{{ top_category }}</h4>
-        </div>
-    </div>
-
-</div>
-    <!-- MAIN SECTION -->
     <div class="row g-4">
 
         <!-- CHART -->
         <div class="col-md-4">
             <div class="card p-4 text-center">
                 <h6 class="mb-3">📊 Spending Summary</h6>
-
                 <div class="chart-box">
                     <canvas id="expenseChart"></canvas>
                 </div>
@@ -133,58 +124,62 @@
         <div class="col-md-8">
             <div class="card p-3">
                 <h6 class="mb-3">📋 Recent Transactions</h6>
+
+                <!-- FILTER -->
                 <form method="GET" class="mb-3 d-flex gap-2">
-    <input type="date" name="date" class="form-control">
-    <button class="btn btn-primary">Filter</button>
-    <a href="/dashboard" class="btn btn-secondary">Reset</a>
-</form>
+                    <input type="date" name="date" class="form-control">
+                    <button class="btn btn-primary">Filter</button>
+                    <a href="/dashboard" class="btn btn-secondary">Reset</a>
+                </form>
 
                 <table class="table table-hover align-middle">
                     <thead>
-    <tr>
-        <th>S.No</th>
-        <th>Title</th>
-        <th>Amount</th>
-        <th>Category</th>
-        <th>Date</th>
-        <th></th>
-    </tr>
-</thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>Title</th>
+                            <th>Amount</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
 
                     <tbody>
-{% if expenses %}
-    {% for e in expenses %}
-<tr>
-    <td>{{ loop.index }}</td>
-        <td>{{ e[1] }}</td>
-        <td class="text-success fw-bold">₹{{ e[2] }}</td>
-        <td>
-            {% if e[3] == 'Food' %}
-                <span class="badge bg-success">🍔 {{ e[3] }}</span>
-            {% elif e[3] == 'Travel' %}
-                <span class="badge bg-warning text-dark">✈️ {{ e[3] }}</span>
-            {% elif e[3] == 'Bills' %}
-                <span class="badge bg-danger">💡 {{ e[3] }}</span>
-            {% else %}
-                <span class="badge bg-secondary">{{ e[3] }}</span>
-            {% endif %}
-        </td>
-        <td>{{ e[4] }}</td>
-        <td>
-           <a href="/edit/{{ e[0] }}" class="btn btn-warning btn-sm">Edit</a>
-<a href="/delete/{{ e[0] }}" class="btn btn-danger btn-sm">Delete</a>
-</a>
-        </td>
-    </tr>
-    {% endfor %}
-{% else %}
-    <tr>
-        <td colspan="5" class="text-center text-muted">
-            No expenses yet. Start by adding one 🚀
-        </td>
-    </tr>
-{% endif %}
-</tbody>
+                        {% if expenses %}
+                            {% for e in expenses %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ e[1] }}</td>
+                                <td class="text-success fw-bold">₹{{ e[2] }}</td>
+
+                                <td>
+                                    {% if e[3] == 'Food' %}
+                                        <span class="badge bg-success">🍔 {{ e[3] }}</span>
+                                    {% elif e[3] == 'Travel' %}
+                                        <span class="badge bg-warning text-dark">✈️ {{ e[3] }}</span>
+                                    {% elif e[3] == 'Bills' %}
+                                        <span class="badge bg-danger">💡 {{ e[3] }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ e[3] }}</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ e[4] }}</td>
+
+                                <td>
+                                    <a href="/edit/{{ e[0] }}" class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="/delete/{{ e[0] }}" class="btn btn-danger btn-sm">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">
+                                    No expenses yet. Start by adding one 🚀
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
 
                 </table>
             </div>
