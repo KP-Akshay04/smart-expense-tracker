@@ -68,6 +68,30 @@ def index():
     if total is None:
         total = 0
 
+# Total transactions
+c.execute("SELECT COUNT(*) FROM expenses")
+count = c.fetchone()[0]
+
+# Highest expense
+c.execute("SELECT MAX(amount) FROM expenses")
+max_expense = c.fetchone()[0]
+if max_expense is None:
+    max_expense = 0
+
+# Most used category
+c.execute("""
+    SELECT category, COUNT(*) 
+    FROM expenses 
+    GROUP BY category 
+    ORDER BY COUNT(*) DESC 
+    LIMIT 1
+""")
+top_category = c.fetchone()
+if top_category:
+    top_category = top_category[0]
+else:
+    top_category = "N/A"
+
     # Chart data (DO NOT TOUCH)
     c.execute("SELECT category, SUM(amount) FROM expenses GROUP BY category")
     chart_data = c.fetchall()
@@ -78,10 +102,13 @@ def index():
     values = [row[1] for row in chart_data]
 
     return render_template("index.html",
-                           expenses=data,
-                           total=total,
-                           labels=labels,
-                           values=values)
+                       expenses=data,
+                       total=total,
+                       count=count,
+                       max_expense=max_expense,
+                       top_category=top_category,
+                       labels=labels,
+                       values=values)
 
 # Add expense
 @app.route('/add', methods=['GET', 'POST'])
