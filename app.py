@@ -46,53 +46,27 @@ def home():
 def index():
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
-
-    # Filters
-    selected_date = request.args.get('date')
-
-    query = "SELECT * FROM expenses"
-    params = []
-
-    if selected_date:
-        query += " WHERE date=?"
-        params.append(selected_date)
-
-    query += " ORDER BY id DESC"   # ✅ NEW (latest first)
-
-    c.execute(query, params)
-    data = c.fetchall()
-
-    # Total expense
+    
+    # your queries...
     c.execute("SELECT SUM(amount) FROM expenses")
-    total = c.fetchone()[0]
-    if total is None:
-        total = 0
+    total = c.fetchone()[0] or 0
 
-# Total transactions
-c.execute("SELECT COUNT(*) FROM expenses")
-count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM expenses")
+    count = c.fetchone()[0]
 
-# Highest expense
-c.execute("SELECT MAX(amount) FROM expenses")
-max_expense = c.fetchone()[0]
-if max_expense is None:
-    max_expense = 0
+    c.execute("SELECT MAX(amount) FROM expenses")
+    max_expense = c.fetchone()[0] or 0
 
-# Most used category
-c.execute("""
-    SELECT category, COUNT(*) 
-    FROM expenses 
-    GROUP BY category 
-    ORDER BY COUNT(*) DESC 
-    LIMIT 1
-""")
-top_category = c.fetchone()
-if top_category:
-    top_category = top_category[0]
-else:
-    top_category = "N/A"
+    c.execute("""
+        SELECT category, COUNT(*) 
+        FROM expenses 
+        GROUP BY category 
+        ORDER BY COUNT(*) DESC 
+        LIMIT 1
+    """)
+    top = c.fetchone()
+    top_category = top[0] if top else "N/A"
 
-    # Chart data (DO NOT TOUCH)
     c.execute("SELECT category, SUM(amount) FROM expenses GROUP BY category")
     chart_data = c.fetchall()
 
@@ -101,14 +75,15 @@ else:
     labels = [row[0] for row in chart_data]
     values = [row[1] for row in chart_data]
 
+    # ✅ IMPORTANT: THIS MUST BE INDENTED
     return render_template("index.html",
-                       expenses=data,
-                       total=total,
-                       count=count,
-                       max_expense=max_expense,
-                       top_category=top_category,
-                       labels=labels,
-                       values=values)
+                           expenses=data,
+                           total=total,
+                           count=count,
+                           max_expense=max_expense,
+                           top_category=top_category,
+                           labels=labels,
+                           values=values)
 
 # Add expense
 @app.route('/add', methods=['GET', 'POST'])
