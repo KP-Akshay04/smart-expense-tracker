@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
+from datetime import date   # ✅ NEW
 
 app = Flask(__name__)
 
@@ -29,13 +30,13 @@ def login():
         password = request.form['password']
 
         if username == "admin" and password == "123":
-            return redirect('/dashboard')   # ✅ FIXED
+            return redirect('/dashboard')
         else:
             return "Invalid credentials"
 
     return render_template("login.html")
 
-# Redirect root → login
+# Home
 @app.route('/')
 def home():
     return render_template("login.html")
@@ -46,23 +47,17 @@ def index():
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
 
-    # 🔥 NEW: Filters
-    date = request.args.get('date')
-    category = request.args.get('category')
+    # Filters
+    selected_date = request.args.get('date')
 
     query = "SELECT * FROM expenses"
     params = []
 
-    if date:
+    if selected_date:
         query += " WHERE date=?"
-        params.append(date)
+        params.append(selected_date)
 
-    if category:
-        if "WHERE" in query:
-            query += " AND category=?"
-        else:
-            query += " WHERE category=?"
-        params.append(category)
+    query += " ORDER BY id DESC"   # ✅ NEW (latest first)
 
     c.execute(query, params)
     data = c.fetchall()
@@ -73,7 +68,7 @@ def index():
     if total is None:
         total = 0
 
-    # Chart data
+    # Chart data (DO NOT TOUCH)
     c.execute("SELECT category, SUM(amount) FROM expenses GROUP BY category")
     chart_data = c.fetchall()
 
@@ -87,6 +82,7 @@ def index():
                            total=total,
                            labels=labels,
                            values=values)
+
 # Add expense
 @app.route('/add', methods=['GET', 'POST'])
 def add():
@@ -94,18 +90,19 @@ def add():
         title = request.form['title']
         amount = request.form['amount']
         category = request.form['category']
-       
+
+        today = date.today().isoformat()   # ✅ NEW
 
         conn = sqlite3.connect("database.db")
         c = conn.cursor()
         c.execute(
-            "INSERT INTO expenses (title, amount, category) VALUES (?, ?, ?)",
-            (title, amount, category)
+            "INSERT INTO expenses (title, amount, category, date) VALUES (?, ?, ?, ?)",
+            (title, amount, category, today)
         )
         conn.commit()
         conn.close()
 
-        return redirect('/dashboard')   # ✅ FIXED
+        return redirect('/dashboard')
 
     return render_template("add.html")
 
@@ -118,7 +115,7 @@ def delete(id):
     conn.commit()
     conn.close()
 
-    return redirect('/dashboard')   # ✅ FIXED
+    return redirect('/dashboard')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

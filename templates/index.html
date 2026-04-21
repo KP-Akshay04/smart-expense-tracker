@@ -127,22 +127,29 @@
         <div class="col-md-8">
             <div class="card p-3">
                 <h6 class="mb-3">📋 Recent Transactions</h6>
+                <form method="GET" class="mb-3 d-flex gap-2">
+    <input type="date" name="date" class="form-control">
+    <button class="btn btn-primary">Filter</button>
+    <a href="/dashboard" class="btn btn-secondary">Reset</a>
+</form>
 
                 <table class="table table-hover align-middle">
                     <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Amount</th>
-                            <th>Category</th>
-                            <th>Date</th>
-                            <th></th>
-                        </tr>
-                    </thead>
+    <tr>
+        <th>S.No</th>
+        <th>Title</th>
+        <th>Amount</th>
+        <th>Category</th>
+        <th>Date</th>
+        <th></th>
+    </tr>
+</thead>
 
                     <tbody>
 {% if expenses %}
     {% for e in expenses %}
-    <tr>
+<tr>
+    <td>{{ loop.index }}</td>
         <td>{{ e[1] }}</td>
         <td class="text-success fw-bold">₹{{ e[2] }}</td>
         <td>
