@@ -10,6 +10,8 @@ DB_PATH = "/home/ubuntu/database.db"
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+
+    # expenses table
     c.execute('''
         CREATE TABLE IF NOT EXISTS expenses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,6 +21,16 @@ def init_db():
             date TEXT
         )
     ''')
+
+    # users table (moved here ✅)
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE,
+            password TEXT
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -31,17 +43,50 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        if username == "admin" and password == "123":
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+
+        c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+        user = c.fetchone()
+
+        conn.close()
+
+        if user:
             return redirect('/dashboard')
         else:
             return "Invalid credentials"
 
     return render_template("login.html")
 
+
+# Register
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        try:
+            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            conn.commit()
+            conn.close()
+            return redirect('/login')
+        except:
+            conn.close()
+            return "User already exists"
+
+    conn.close()
+    return render_template("register.html")
+
+
 # Home
 @app.route('/')
 def home():
     return render_template("login.html")
+
 
 # Dashboard
 @app.route('/dashboard')
@@ -49,7 +94,6 @@ def index():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
-    # ✅ FILTER LOGIC (FIXED INDENTATION)
     selected_date = request.args.get('date')
 
     if selected_date:
@@ -57,21 +101,18 @@ def index():
     else:
         c.execute("SELECT * FROM expenses")
 
-    data = c.fetchall()  # ✅ always defined
+    data = c.fetchall()
 
-    # Total expense
+    # Stats
     c.execute("SELECT SUM(amount) FROM expenses")
     total = c.fetchone()[0] or 0
 
-    # Total transactions
     c.execute("SELECT COUNT(*) FROM expenses")
     count = c.fetchone()[0]
 
-    # Highest expense
     c.execute("SELECT MAX(amount) FROM expenses")
     max_expense = c.fetchone()[0] or 0
 
-    # Most used category
     c.execute("""
         SELECT category, COUNT(*) 
         FROM expenses 
@@ -82,7 +123,6 @@ def index():
     top = c.fetchone()
     top_category = top[0] if top else "N/A"
 
-    # Chart data
     c.execute("SELECT category, SUM(amount) FROM expenses GROUP BY category")
     chart_data = c.fetchall()
 
@@ -99,6 +139,7 @@ def index():
                            top_category=top_category,
                            labels=labels,
                            values=values)
+
 
 # Add expense
 @app.route('/add', methods=['GET', 'POST'])
@@ -122,6 +163,7 @@ def add():
 
     return render_template("add.html")
 
+
 # Delete expense
 @app.route('/delete/<int:id>')
 def delete(id):
@@ -132,6 +174,7 @@ def delete(id):
     conn.close()
 
     return redirect('/dashboard')
+
 
 # Edit expense
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
@@ -160,6 +203,7 @@ def edit(id):
     conn.close()
 
     return render_template("edit.html", expense=expense)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
