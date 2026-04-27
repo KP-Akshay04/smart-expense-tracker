@@ -94,7 +94,7 @@ def logout():
 # 🏠 HOME
 @app.route('/')
 def home():
-    return redirect('/login')
+    return render_template("home.html")
 
 
 # 📊 DASHBOARD
