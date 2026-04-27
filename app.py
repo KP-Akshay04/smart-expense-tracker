@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 import sqlite3
 from datetime import date
 
 app = Flask(__name__)
+app.secret_key = "your_secret_key"   # 🔐 required for sessions
 
 DB_PATH = "/home/ubuntu/database.db"
 
@@ -11,18 +12,7 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
-    # expenses table
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS expenses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT,
-            amount REAL,
-            category TEXT,
-            date TEXT
-        )
-    ''')
-
-    # users table (moved here ✅)
+    # users table
     c.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,12 +21,24 @@ def init_db():
         )
     ''')
 
+    # expenses table with user_id ✅
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS expenses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            title TEXT,
+            amount REAL,
+            category TEXT,
+            date TEXT
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
 init_db()
 
-# Login page
+# 🔐 LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -48,10 +50,10 @@ def login():
 
         c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
         user = c.fetchone()
-
         conn.close()
 
         if user:
+            session['user_id'] = user[0]
             return redirect('/dashboard')
         else:
             return "Invalid credentials"
@@ -59,7 +61,7 @@ def login():
     return render_template("login.html")
 
 
-# Register
+# 📝 REGISTER
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     conn = sqlite3.connect(DB_PATH)
@@ -82,48 +84,61 @@ def register():
     return render_template("register.html")
 
 
-# Home
+# 🔒 LOGOUT
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/login')
+
+
+# 🏠 HOME
 @app.route('/')
 def home():
-    return render_template("login.html")
+    return redirect('/login')
 
 
-# Dashboard
+# 📊 DASHBOARD
 @app.route('/dashboard')
 def index():
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    user_id = session['user_id']
+
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     selected_date = request.args.get('date')
 
     if selected_date:
-        c.execute("SELECT * FROM expenses WHERE date=?", (selected_date,))
+        c.execute("SELECT * FROM expenses WHERE user_id=? AND date=?", (user_id, selected_date))
     else:
-        c.execute("SELECT * FROM expenses")
+        c.execute("SELECT * FROM expenses WHERE user_id=?", (user_id,))
 
     data = c.fetchall()
 
     # Stats
-    c.execute("SELECT SUM(amount) FROM expenses")
+    c.execute("SELECT SUM(amount) FROM expenses WHERE user_id=?", (user_id,))
     total = c.fetchone()[0] or 0
 
-    c.execute("SELECT COUNT(*) FROM expenses")
+    c.execute("SELECT COUNT(*) FROM expenses WHERE user_id=?", (user_id,))
     count = c.fetchone()[0]
 
-    c.execute("SELECT MAX(amount) FROM expenses")
+    c.execute("SELECT MAX(amount) FROM expenses WHERE user_id=?", (user_id,))
     max_expense = c.fetchone()[0] or 0
 
     c.execute("""
         SELECT category, COUNT(*) 
         FROM expenses 
+        WHERE user_id=? 
         GROUP BY category 
         ORDER BY COUNT(*) DESC 
         LIMIT 1
-    """)
+    """, (user_id,))
     top = c.fetchone()
     top_category = top[0] if top else "N/A"
 
-    c.execute("SELECT category, SUM(amount) FROM expenses GROUP BY category")
+    c.execute("SELECT category, SUM(amount) FROM expenses WHERE user_id=? GROUP BY category", (user_id,))
     chart_data = c.fetchall()
 
     conn.close()
@@ -141,20 +156,24 @@ def index():
                            values=values)
 
 
-# Add expense
+# ➕ ADD EXPENSE
 @app.route('/add', methods=['GET', 'POST'])
 def add():
+    if 'user_id' not in session:
+        return redirect('/login')
+
     if request.method == 'POST':
         title = request.form['title']
         amount = request.form['amount']
         category = request.form['category']
         today = date.today().isoformat()
+        user_id = session['user_id']
 
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute(
-            "INSERT INTO expenses (title, amount, category, date) VALUES (?, ?, ?, ?)",
-            (title, amount, category, today)
+            "INSERT INTO expenses (user_id, title, amount, category, date) VALUES (?, ?, ?, ?, ?)",
+            (user_id, title, amount, category, today)
         )
         conn.commit()
         conn.close()
@@ -164,21 +183,28 @@ def add():
     return render_template("add.html")
 
 
-# Delete expense
+# ❌ DELETE
 @app.route('/delete/<int:id>')
 def delete(id):
+    if 'user_id' not in session:
+        return redirect('/login')
+
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("DELETE FROM expenses WHERE id=?", (id,))
+    user_id = session['user_id']
+    c.execute("DELETE FROM expenses WHERE id=? AND user_id=?", (id, user_id))
     conn.commit()
     conn.close()
 
     return redirect('/dashboard')
 
 
-# Edit expense
+# ✏️ EDIT
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
+    if 'user_id' not in session:
+        return redirect('/login')
+
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
@@ -198,7 +224,8 @@ def edit(id):
 
         return redirect('/dashboard')
 
-    c.execute("SELECT * FROM expenses WHERE id=?", (id,))
+    user_id = session['user_id']
+    c.execute("SELECT * FROM expenses WHERE id=? AND user_id=?", (id, user_id))
     expense = c.fetchone()
     conn.close()
 
