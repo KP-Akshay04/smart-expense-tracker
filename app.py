@@ -138,7 +138,20 @@ def index():
     top = c.fetchone()
     top_category = top[0] if top else "N/A"
 
-    c.execute("SELECT category, SUM(amount) FROM expenses WHERE user_id=? GROUP BY category", (user_id,))
+    if selected_date:
+        c.execute("""
+        SELECT category, SUM(amount) 
+        FROM expenses 
+        WHERE user_id=? AND date=? 
+        GROUP BY category
+    """, (user_id, selected_date))
+    else:
+        c.execute("""
+        SELECT category, SUM(amount) 
+        FROM expenses 
+        WHERE user_id=? 
+        GROUP BY category
+    """, (user_id,))
     chart_data = c.fetchall()
 
     conn.close()
