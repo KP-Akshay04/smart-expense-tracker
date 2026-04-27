@@ -1,12 +1,14 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
-from datetime import date   # ✅ NEW
+from datetime import date
 
 app = Flask(__name__)
 
+DB_PATH = "/home/ubuntu/database.db"
+
 # Initialize DB
 def init_db():
-    conn = sqlite3.connect("/home/ubuntu/database.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS expenses (
@@ -44,12 +46,18 @@ def home():
 # Dashboard
 @app.route('/dashboard')
 def index():
-    conn = sqlite3.connect("/home/ubuntu/database.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
-    # 🔥 FETCH ALL DATA (MISSING BEFORE)
-    c.execute("SELECT * FROM expenses")
-    data = c.fetchall()
+    # ✅ FILTER LOGIC (FIXED INDENTATION)
+    selected_date = request.args.get('date')
+
+    if selected_date:
+        c.execute("SELECT * FROM expenses WHERE date=?", (selected_date,))
+    else:
+        c.execute("SELECT * FROM expenses")
+
+    data = c.fetchall()  # ✅ always defined
 
     # Total expense
     c.execute("SELECT SUM(amount) FROM expenses")
@@ -99,10 +107,9 @@ def add():
         title = request.form['title']
         amount = request.form['amount']
         category = request.form['category']
+        today = date.today().isoformat()
 
-        today = date.today().isoformat()   # ✅ NEW
-
-        conn = sqlite3.connect("/home/ubuntu/database.db")
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute(
             "INSERT INTO expenses (title, amount, category, date) VALUES (?, ?, ?, ?)",
@@ -118,7 +125,7 @@ def add():
 # Delete expense
 @app.route('/delete/<int:id>')
 def delete(id):
-    conn = sqlite3.connect("/home/ubuntu/database.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("DELETE FROM expenses WHERE id=?", (id,))
     conn.commit()
@@ -129,7 +136,7 @@ def delete(id):
 # Edit expense
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
-    conn = sqlite3.connect("/home/ubuntu/database.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     if request.method == 'POST':
@@ -148,7 +155,6 @@ def edit(id):
 
         return redirect('/dashboard')
 
-    # GET request → fetch data
     c.execute("SELECT * FROM expenses WHERE id=?", (id,))
     expense = c.fetchone()
     conn.close()
