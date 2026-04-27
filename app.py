@@ -111,9 +111,17 @@ def index():
     selected_date = request.args.get('date')
 
     if selected_date:
-        c.execute("SELECT * FROM expenses WHERE user_id=? AND date=?", (user_id, selected_date))
+        c.execute("""
+    SELECT id, title, amount, category, date 
+    FROM expenses 
+    WHERE user_id=? AND date=?
+""", (user_id, selected_date))
     else:
-        c.execute("SELECT * FROM expenses WHERE user_id=?", (user_id,))
+        c.execute("""
+    SELECT id, title, amount, category, date 
+    FROM expenses 
+    WHERE user_id=?
+""", (user_id,))
 
     data = c.fetchall()
 
