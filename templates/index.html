@@ -190,16 +190,19 @@
         /* TABLE */
 
         .table {
-            color: white;
+            color: rgb(255, 255, 255);
             margin-top: 15px;
+            background: transparent;
+            border-collapse: separate;
+            border-spacing: 0 14px;
         }
 
         .table thead {
-            color: #cbd5e1;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-size: 13px;
+            font-size: 12px;
+            border: none;
         }
 
         .table tbody tr {
@@ -207,13 +210,28 @@
         }
 
         .table tbody tr:hover {
-            background: rgba(255,255,255,0.06);
-            transform: scale(1.01);
+            background: rgba(99,102,241,0.12);
+            transform: translateY(-2px) scale(1.01);
         }
 
         .table td {
-            padding: 18px 10px;
+            padding: 22px 18px;
             vertical-align: middle;
+            border: none;
+        }
+
+        .table tbody tr {
+    background: rgba(15,23,42,0.85);
+        }
+
+        .table tbody td:first-child {
+            border-top-left-radius: 16px;
+            border-bottom-left-radius: 16px;
+        }
+
+        .table tbody td:last-child {
+            border-top-right-radius: 16px;
+            border-bottom-right-radius: 16px;
         }
 
         /* BUTTONS */
@@ -353,6 +371,110 @@
     box-shadow: 0 15px 40px rgba(99,102,241,0.6);
 }
 
+.chart-container {
+    position: relative;
+    height: 220px;
+    margin-top: 18px;
+}
+
+select option {
+    background: #0f172a;
+    color: white;
+}
+
+.table-responsive {
+    border-radius: 20px;
+    overflow-x: auto;
+    background: transparent;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.table td {
+    font-size: 15px;
+}
+
+.table tbody tr:hover {
+    background: rgba(99,102,241,0.08);
+    transform: scale(1.005);
+}
+
+.table thead th {
+    padding-bottom: 18px;
+}
+
+.analytics-panel {
+    padding: 24px 28px;
+}
+
+.analytics-panel h3 {
+    font-size: 28px;
+}
+
+.analytics-panel p {
+    font-size: 15px;
+}
+
+.analytics-mini-panel {
+    height: 100%;
+}
+
+.mini-chart-container {
+    position: relative;
+    height: 220px;
+}
+
+.analytics-status {
+    background: rgba(99,102,241,0.15);
+    color: #8b5cf6;
+    padding: 10px 18px;
+    border-radius: 14px;
+    font-weight: 600;
+}
+
+.insights-panel {
+    height: 100%;
+}
+
+.insight-box {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    background: rgba(255,255,255,0.04);
+
+    padding: 18px;
+    border-radius: 18px;
+
+    margin-bottom: 18px;
+}
+
+.insight-icon {
+    width: 50px;
+    height: 50px;
+
+    border-radius: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+}
+
+.glass-panel {
+    background: linear-gradient(
+        145deg,
+        rgba(15,23,42,0.88),
+        rgba(15,23,42,0.72)
+    );
+}
 
     </style>
 </head>
@@ -489,7 +611,13 @@
 
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
 
-                        <h5 class="mb-0">Recent Transactions</h5>
+                        <div>
+    <h4 class="fw-bold mb-1">Recent Transactions</h4>
+
+    <p class="text-secondary mb-0">
+        Monitor and manage your latest spending activity.
+    </p>
+</div>
 
                         <button class="btn-primary-custom border-0"
                                 data-bs-toggle="modal"
@@ -509,7 +637,7 @@
                             <input type="date" name="date" class="form-control">
                         </div>
 
-                        <div class="col-md-6 d-flex gap-2">
+                        <div class="col-md-6 d-flex align-items-center gap-2">
 
                             <button class="btn-primary-custom border-0">
                                 Filter
@@ -618,29 +746,98 @@
 
 </div>
 
-<!-- MONTHLY ANALYTICS -->
+<!-- COMPACT ANALYTICS -->
 
-<div id="analytics-section" class="glass-panel mt-4">
+<div id="analytics-section" class="row g-4 mt-1">
 
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <!-- MINI GRAPH -->
 
-        <div>
-            <h3 class="fw-bold mb-1">
-                📈 Financial Analytics Overview
-            </h3>
+    <div class="col-lg-8">
 
-            <p class="text-secondary mb-0">
-                Track monthly trends and understand your financial behavior over time.
-            </p>
-        </div>
+        <div class="glass-panel analytics-mini-panel">
 
-        <div class="badge bg-primary p-3 rounded-pill">
-            Smart Analytics
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        Monthly Expense Trend
+                    </h5>
+
+                    <p class="text-secondary mb-0">
+                        Spending analytics overview
+                    </p>
+                </div>
+
+                <div class="analytics-status">
+                    ↑ {{ total }}
+                </div>
+
+            </div>
+
+            <div class="mini-chart-container">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+
         </div>
 
     </div>
 
-    <div style="height: 350px;">
+    <!-- INSIGHTS -->
+
+    <div class="col-lg-4">
+
+        <div class="glass-panel insights-panel">
+
+            <h5 class="fw-bold mb-4">
+                Smart Insights
+            </h5>
+
+            <div class="insight-box">
+
+                <div class="insight-icon bg-success">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                </div>
+
+                <div>
+                    <small>Total Spending</small>
+                    <h6 class="mb-0">₹{{ total }}</h6>
+                </div>
+
+            </div>
+
+            <div class="insight-box">
+
+                <div class="insight-icon bg-primary">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+
+                <div>
+                    <small>Top Category</small>
+                    <h6 class="mb-0">{{ top_category }}</h6>
+                </div>
+
+            </div>
+
+            <div class="insight-box">
+
+                <div class="insight-icon bg-danger">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+
+                <div>
+                    <small>Transactions</small>
+                    <h6 class="mb-0">{{ count }}</h6>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+    <div class="chart-container">
     <canvas id="monthlyChart"></canvas>
 </div>
 
@@ -692,9 +889,9 @@ new Chart(monthlyCtx, {
             data: {{ monthly_values | tojson }},
 
             borderColor: '#8b5cf6',
+            shadowOffsetX: 0,
 
-            backgroundColor: 'rgba(139,92,246,0.15)',
-
+            backgroundColor: 'rgba(139,92,246,0.10)',
             fill: true,
 
             tension: 0.45,
@@ -768,14 +965,26 @@ new Chart(monthlyCtx, {
             y: {
 
                 grid: {
-                    color: 'rgba(255,255,255,0.06)'
+                    color: 'rgba(255,255,255,0.03)',
+                    drawBorder: false
                 },
 
                 ticks: {
-                    color: '#cbd5e1',
+                    color: '#94a3b8',
+                    padding: 10,
                     font: {
-                        size: 13
+                        size: 12
                     }
+                }
+            }
+        }
+    }
+
+});
+
+</script>
+
+<!-- ADD EXPENSE MODAL -->
                 }
             }
         }
