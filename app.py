@@ -1,11 +1,22 @@
+from urllib import response
+
 from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
 from datetime import date
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"   # 🔐 required for sessions
+@app.after_request
+def add_header(response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+app.secret_key = "supersecretkey" 
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # 🔐 required for sessions
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "database.db")
@@ -93,7 +104,12 @@ def register():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect('/login')
+
+    response = redirect('/login')
+
+    response.set_cookie('session', '', expires=0)
+
+    return response
 
 
 # 🏠 HOME
@@ -105,6 +121,7 @@ def home():
 # 📊 DASHBOARD
 @app.route('/dashboard')
 def index():
+    print(session)
     if 'user_id' not in session:
         return redirect('/login')
 
@@ -172,14 +189,20 @@ def index():
     labels = [row[0] for row in chart_data]
     values = [row[1] for row in chart_data]
 
-    return render_template("index.html",
+    response = make_response(render_template("index.html",
                            expenses=data,
                            total=total,
                            count=count,
                            max_expense=max_expense,
                            top_category=top_category,
                            labels=labels,
-                           values=values)
+                           values=values))
+
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+
+    return response
 
 
 # ➕ ADD EXPENSE
