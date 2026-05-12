@@ -40,7 +40,7 @@
                 radial-gradient(circle at top left, rgba(99,102,241,0.18), transparent 25%),
                 radial-gradient(circle at bottom right, rgba(139,92,246,0.18), transparent 25%),
                 #020617;
-                
+
             color: white;
             overflow-x: hidden;
         }
@@ -640,7 +640,9 @@
 
     </div>
 
-    <canvas id="monthlyChart" height="80"></canvas>
+    <div style="height: 350px;">
+    <canvas id="monthlyChart"></canvas>
+</div>
 
 </div>
 
@@ -682,38 +684,98 @@ new Chart(monthlyCtx, {
 
     data: {
         labels: {{ monthly_labels | tojson }},
+
         datasets: [{
-            label: 'Monthly Expenses',
+
+            label: 'Expense Trend',
+
             data: {{ monthly_values | tojson }},
-            tension: 0.4,
+
+            borderColor: '#8b5cf6',
+
+            backgroundColor: 'rgba(139,92,246,0.15)',
+
             fill: true,
+
+            tension: 0.45,
+
             borderWidth: 4,
-            pointRadius: 5,
-            pointHoverRadius: 8
+
+            pointRadius: 6,
+
+            pointHoverRadius: 10,
+
+            pointBackgroundColor: '#ffffff',
+
+            pointBorderColor: '#8b5cf6',
+
+            pointBorderWidth: 3
+
         }]
     },
 
     options: {
+
         responsive: true,
 
+        maintainAspectRatio: false,
+
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+
         plugins: {
+
             legend: {
-                labels: {
-                    color: "white"
-                }
+                display: false
+            },
+
+            tooltip: {
+
+                backgroundColor: '#0f172a',
+
+                borderColor: '#8b5cf6',
+
+                borderWidth: 1,
+
+                padding: 14,
+
+                titleColor: '#ffffff',
+
+                bodyColor: '#cbd5e1',
+
+                displayColors: false
             }
         },
 
         scales: {
+
             x: {
+
+                grid: {
+                    display: false
+                },
+
                 ticks: {
-                    color: "white"
+                    color: '#cbd5e1',
+                    font: {
+                        size: 13
+                    }
                 }
             },
 
             y: {
+
+                grid: {
+                    color: 'rgba(255,255,255,0.06)'
+                },
+
                 ticks: {
-                    color: "white"
+                    color: '#cbd5e1',
+                    font: {
+                        size: 13
+                    }
                 }
             }
         }
