@@ -1,11 +1,14 @@
 from flask import Flask, render_template, request, redirect, session
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+import os
 from datetime import date
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"   # 🔐 required for sessions
+app.secret_key = "supersecretkey"   # 🔐 required for sessions
 
-DB_PATH = "/home/ubuntu/database.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "database.db")
 
 # Initialize DB
 def init_db():
@@ -48,12 +51,13 @@ def login():
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
 
-        c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+        c.execute("SELECT * FROM users WHERE username=?", (username,))
         user = c.fetchone()
+
         conn.close()
 
-        if user:
-            session['user_id'] = user[0]
+        if user and check_password_hash(user[2], password):
+            session['user_id'] = user[0]   # ✅ FIXED
             return redirect('/dashboard')
         else:
             return "Invalid credentials"
@@ -70,9 +74,10 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        hashed_password = generate_password_hash(password)
 
         try:
-            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
             conn.commit()
             conn.close()
             return redirect('/login')
@@ -226,6 +231,7 @@ def edit(id):
     if 'user_id' not in session:
         return redirect('/login')
 
+    user_id = session['user_id']
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
@@ -237,15 +243,12 @@ def edit(id):
         c.execute("""
             UPDATE expenses 
             SET title=?, amount=?, category=? 
-            WHERE id=?
-        """, (title, amount, category, id))
-
+            WHERE id=? AND user_id=?
+        """, (title, amount, category, id, user_id))
         conn.commit()
         conn.close()
-
         return redirect('/dashboard')
 
-    user_id = session['user_id']
     c.execute("SELECT * FROM expenses WHERE id=? AND user_id=?", (id, user_id))
     expense = c.fetchone()
     conn.close()
