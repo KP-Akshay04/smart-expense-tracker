@@ -28,7 +28,11 @@
         }
 
         * {
-            font-family: 'Inter', sans-serif;
+    font-family: 'Inter', sans-serif;
+        }
+
+    html {
+    scroll-behavior: smooth;
         }
 
         body {
@@ -36,8 +40,7 @@
                 radial-gradient(circle at top left, rgba(99,102,241,0.18), transparent 25%),
                 radial-gradient(circle at bottom right, rgba(139,92,246,0.18), transparent 25%),
                 #020617;
-
-            background: #020617;
+                
             color: white;
             overflow-x: hidden;
         }
@@ -379,7 +382,7 @@
             Add Expense
         </a>
 
-        <a href="/dashboard" class="nav-link-custom">
+        <a href="#analytics-section" class="nav-link-custom">
             <i class="fa-solid fa-chart-pie"></i>
             Analytics
         </a>
@@ -476,6 +479,7 @@
 
                 </div>
             </div>
+
 
             <!-- TABLE -->
 
@@ -614,6 +618,32 @@
 
 </div>
 
+<!-- MONTHLY ANALYTICS -->
+
+<div id="analytics-section" class="glass-panel mt-4">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">
+                📈 Financial Analytics Overview
+            </h3>
+
+            <p class="text-secondary mb-0">
+                Track monthly trends and understand your financial behavior over time.
+            </p>
+        </div>
+
+        <div class="badge bg-primary p-3 rounded-pill">
+            Smart Analytics
+        </div>
+
+    </div>
+
+    <canvas id="monthlyChart" height="80"></canvas>
+
+</div>
+
 <!-- Chart.js -->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -640,6 +670,57 @@
             }
         }
     });
+</script>
+
+<script>
+
+const monthlyCtx = document.getElementById('monthlyChart');
+
+new Chart(monthlyCtx, {
+
+    type: 'line',
+
+    data: {
+        labels: {{ monthly_labels | tojson }},
+        datasets: [{
+            label: 'Monthly Expenses',
+            data: {{ monthly_values | tojson }},
+            tension: 0.4,
+            fill: true,
+            borderWidth: 4,
+            pointRadius: 5,
+            pointHoverRadius: 8
+        }]
+    },
+
+    options: {
+        responsive: true,
+
+        plugins: {
+            legend: {
+                labels: {
+                    color: "white"
+                }
+            }
+        },
+
+        scales: {
+            x: {
+                ticks: {
+                    color: "white"
+                }
+            },
+
+            y: {
+                ticks: {
+                    color: "white"
+                }
+            }
+        }
+    }
+
+});
+
 </script>
 
 <!-- ADD EXPENSE MODAL -->

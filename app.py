@@ -184,10 +184,41 @@ def index():
     """, (user_id,))
     chart_data = c.fetchall()
 
+    # 📈 Monthly Analytics
+
+    c.execute("""
+    SELECT strftime('%m', date) AS month,
+           SUM(amount)
+    FROM expenses
+    WHERE user_id=?
+    GROUP BY month
+    ORDER BY month
+    """, (user_id,))
+
+    monthly_data = c.fetchall()
+
     conn.close()
 
     labels = [row[0] for row in chart_data]
     values = [row[1] for row in chart_data]
+
+    month_names = {
+    "01": "Jan",
+    "02": "Feb",
+    "03": "Mar",
+    "04": "Apr",
+    "05": "May",
+    "06": "Jun",
+    "07": "Jul",
+    "08": "Aug",
+    "09": "Sep",
+    "10": "Oct",
+    "11": "Nov",
+    "12": "Dec"
+}
+
+    monthly_labels = [month_names.get(row[0], row[0]) for row in monthly_data]
+    monthly_values = [row[1] for row in monthly_data]
 
     response = make_response(render_template("index.html",
                            expenses=data,
@@ -196,7 +227,9 @@ def index():
                            max_expense=max_expense,
                            top_category=top_category,
                            labels=labels,
-                           values=values))
+                           values=values,
+                           monthly_labels=monthly_labels,
+                           monthly_values=monthly_values))
 
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Pragma"] = "no-cache"
